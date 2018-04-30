@@ -211,7 +211,7 @@ public class AttendanceHax extends AppCompatActivity {
      *
      * @param jsonResult the result of the API call as a string
      * */
-    public static void finishProcessImage(final String jsonResult) {
+    public void finishProcessImage(final String jsonResult) {
 
         if (jsonStringArray[0].equals("")) {
             jsonStringArray[0] = jsonResult;
@@ -220,10 +220,16 @@ public class AttendanceHax extends AppCompatActivity {
             jsonStringArray[0] = jsonResult;
         }
         if (jsonStringArray[1].equals("") && !(jsonStringArray[0].equals(""))) {
-
+            jsonStringArray[1] = jsonResult;
+            finalCompareImages(jsonStringArray[0], jsonStringArray[1]);
+        }
+        if (!(jsonStringArray[0].equals("")) && !(jsonStringArray[1].equals(""))) {
+            jsonStringArray[1] = jsonStringArray[0];
+            jsonStringArray[0] = jsonResult;
+            finalCompareImages(jsonStringArray[0], jsonStringArray[1]);
         }
     }
-    public static void compareImages(final String json) {
+    public void compareImages(final String json) {
         try {
             JsonParser parser = new JsonParser();
             JsonObject object = parser.parse(json).getAsJsonObject();
@@ -246,14 +252,19 @@ public class AttendanceHax extends AppCompatActivity {
         finishProcessImage(jsonexample);
     }
 
-    public static boolean finalCompareImages(final String jsonExample, final String json2Example) {
+    public boolean finalCompareImages(final String jsonExample, final String json2Example) {
+        Toast.makeText(getApplicationContext(), "The images should be compared",
+                Toast.LENGTH_LONG).show();
+        Log.w(TAG, "Have the images been compared?");
         if (jsonExample.equals(json2Example)) {
+            Log.w(TAG, "The images are the same");
             return true;
             /**
              * from here you'll want to call the vibration
              */
         }
         else {
+            Log.w(TAG, "The images are different");
             return false;
         }
     }
