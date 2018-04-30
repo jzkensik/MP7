@@ -64,7 +64,18 @@ public class AttendanceHax extends AppCompatActivity {
 
     private boolean canWriteToPublicStorage = false;
 
+    /** Constant to request permission to write to the external storage device. */
+    private static final int REQUEST_WRITE_STORAGE = 112;
+
     private static final int IMAGE_CAPTURE_REQUEST_CODE = 1;
+
+    public static String jsonexample = "";
+
+    public static String json2example = "";
+
+    public static String json3example = "";
+
+    public static String[] jsonStringArray = {json2example, json3example};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,14 +107,7 @@ public class AttendanceHax extends AppCompatActivity {
                  */
             }
         });
-        final ImageButton takePhoto = findViewById(R.id.takePhoto);
-        takePhoto.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View v) {
-                Log.d(TAG, "Take photo button clicked");
-                startTakePhoto();
-            }
-        });
+
         final Switch turnOnVibration = findViewById(R.id.switch2);
         turnOnVibration.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -205,36 +209,51 @@ public class AttendanceHax extends AppCompatActivity {
     /**
      * Process the result from making the API call.
      *
-     * @param json the result of the API call as a string
+     * @param jsonResult the result of the API call as a string
      * */
-    public static boolean compareImages(final String json) {
+    public static void finishProcessImage(final String jsonResult) {
+
+        if (jsonStringArray[0].equals("")) {
+            jsonStringArray[0] = jsonResult;
+        }
+        if (jsonStringArray[1].equals("") && jsonStringArray[0].equals("")) {
+            jsonStringArray[0] = jsonResult;
+        }
+        if (jsonStringArray[1].equals("") && !(jsonStringArray[0].equals(""))) {
+
+        }
+    }
+    public static void compareImages(final String json) {
         try {
-            if (json == null) {
-                return false;
-            }
             JsonParser parser = new JsonParser();
             JsonObject object = parser.parse(json).getAsJsonObject();
-            JsonArray tag = object.getAsJsonArray("categories");
-            if (tag == null) {
-                return false;
-            }
+            JsonArray tag = object.getAsJsonArray("regions");
             for (JsonElement name : tag) {
                 JsonObject yes = name.getAsJsonObject();
-                JsonObject next = yes.getAsJsonObject("detail");
-                JsonArray secondArray = next.getAsJsonArray("celebrities");
-                if (secondArray == null) {
-                    return false;
-                }
+                JsonArray secondArray = yes.getAsJsonArray("lines");
                 for (JsonElement arrghh : secondArray) {
-                    JsonObject no = arrghh.getAsJsonObject();
-                    String rick = no.get("name").getAsString();
-                    if (rick.equalsIgnoreCase("Rick Astley")) {
-                        return true;
+                    JsonObject ha = arrghh.getAsJsonObject();
+                    JsonArray thirdArray = ha.getAsJsonArray("words");
+                    for (JsonElement lastOne: thirdArray) {
+                        JsonObject no = lastOne.getAsJsonObject();
+                        String rick = no.get("text").getAsString();
+                        jsonexample += rick;
                     }
                 }
             }
-            return false;
         } catch (NullPointerException f) {
+        }
+        finishProcessImage(jsonexample);
+    }
+
+    public static boolean finalCompareImages(final String jsonExample, final String json2Example) {
+        if (jsonExample.equals(json2Example)) {
+            return true;
+            /**
+             * from here you'll want to call the vibration
+             */
+        }
+        else {
             return false;
         }
     }

@@ -134,7 +134,7 @@ public class APIRetrieval {
         private static final String SUBSCRIPTION_KEY = BuildConfig.API_KEY;
 
         /** Reference to the calling activity so that we can return results. */
-        private WeakReference<MainActivity> activityReference;
+        private WeakReference<AttendanceHax> activityReference;
 
         /** Request queue to use for our API call. */
         private RequestQueue requestQueue;
@@ -148,7 +148,7 @@ public class APIRetrieval {
          * @param context calling activity context
          * @param setRequestQueue Volley request queue to use for the API request
          */
-        ProcessImageTask(final MainActivity context, final RequestQueue setRequestQueue) {
+        ProcessImageTask(final AttendanceHax context, final RequestQueue setRequestQueue) {
             activityReference = new WeakReference<>(context);
             requestQueue = setRequestQueue;
         }
@@ -158,7 +158,7 @@ public class APIRetrieval {
          */
         @Override
         protected void onPreExecute() {
-            MainActivity activity = activityReference.get();
+            AttendanceHax activity = activityReference.get();
             if (activity == null || activity.isFinishing()) {
                 return;
             }
@@ -199,13 +199,13 @@ public class APIRetrieval {
                         public void onResponse(final String response) {
                             // On success, clear the progress bar and call finishProcessImage
                             Log.d(TAG, "Response: " + response);
-                            MainActivity activity = activityReference.get();
+                            AttendanceHax activity = activityReference.get();
                             if (activity == null || activity.isFinishing()) {
                                 return;
                             }
                             ProgressBar progressBar = activity.findViewById(R.id.progressBar);
                             progressBar.setVisibility(View.INVISIBLE);
-                            activity.finishProcessImage(response);
+                            activity.compareImages(response);
                         }
                     }, new Response.ErrorListener() {
                 @Override
@@ -218,7 +218,7 @@ public class APIRetrieval {
                         Log.w(TAG, "Unauthorized request. "
                                 + "Make sure you added your API_KEY to app/secrets.properties");
                     }
-                    MainActivity activity = activityReference.get();
+                    AttendanceHax activity = activityReference.get();
                     if (activity == null || activity.isFinishing()) {
                         return;
                     }
