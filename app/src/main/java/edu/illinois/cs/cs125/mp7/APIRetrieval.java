@@ -205,7 +205,7 @@ public class APIRetrieval {
                             }
                             ProgressBar progressBar = activity.findViewById(R.id.progressBar);
                             progressBar.setVisibility(View.INVISIBLE);
-                            activity.compareImages(response);
+                            activity.returnAPI(response);
                         }
                     }, new Response.ErrorListener() {
                 @Override

@@ -93,14 +93,32 @@ public class AttendanceHax extends AppCompatActivity {
         /**
          * takes the first picture and sends it to be analyzed.
          */
-        final Button getAPI = findViewById(R.id.attendance_hax);
+
+        final Button openFile = findViewById(R.id.upload_image);
+        openFile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(final View v) {
+                Log.d(TAG, "Open file button clicked");
+                startOpenFile();
+            }
+        });
+        final Button takePhoto = findViewById(R.id.take_photo);
+        takePhoto.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(final View v) {
+                Log.d(TAG, "Take photo button clicked");
+                startTakePhoto();
+            }
+        });
+
+        final Button getAPI = findViewById(R.id.begin_hack);
         getAPI.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
                 Log.d(TAG, "Start logging images");
-                Toast.makeText(getApplicationContext(), "Apagando las luces!",
-                        Toast.LENGTH_LONG).show();
-                 startTakePhoto();
+                //Toast.makeText(getApplicationContext(), "Apagando las luces!",
+                //        Toast.LENGTH_LONG).show();
+                 startProcessImage();
                 /**
                  * use this call when you have a picture to retrieve back. Put it here or somewhere else.
                  * startProcessImage();
@@ -153,18 +171,22 @@ public class AttendanceHax extends AppCompatActivity {
 
     private File currentPhotoFile = null;
 
+    private void startOpenFile() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("image/*");
+        startActivityForResult(intent, READ_REQUEST_CODE);
+    }
+
     private void startTakePhoto() {
         if (photoRequestActive) {
             Log.w(TAG, "Overlapping photo requests");
             return;
         }
-        Toast.makeText(getApplicationContext(), "Photo being taken",
-                Toast.LENGTH_LONG).show();
+
         // Set up an intent to launch the camera app and have it take a photo for us
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         currentPhotoFile = getSaveFilename();
-        Toast.makeText(getApplicationContext(), "clear",
-                Toast.LENGTH_LONG).show();
 
         if (takePictureIntent.resolveActivity(getPackageManager()) == null
                 || currentPhotoFile == null) {
@@ -176,13 +198,12 @@ public class AttendanceHax extends AppCompatActivity {
         }
 
         // Configure and launch the intent
+
         Uri photoURI = FileProvider.getUriForFile(this,
                 "edu.illinois.cs.cs125.mp7.fileprovider", currentPhotoFile);
         takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
         photoRequestActive = true;
         startActivityForResult(takePictureIntent, IMAGE_CAPTURE_REQUEST_CODE);
-
-
     }
     
     private void startProcessImage() {
@@ -202,7 +223,7 @@ public class AttendanceHax extends AppCompatActivity {
                 .execute(currentBitmap);
     }
     private void enableOrDisableButtons(final boolean enableOrDisable) {
-        final Button attendanceHax = findViewById(R.id.attendance_hax);
+        final Button attendanceHax = findViewById(R.id.begin_hack);
         attendanceHax.setClickable(enableOrDisable);
         attendanceHax.setEnabled(enableOrDisable);
     }
@@ -211,25 +232,32 @@ public class AttendanceHax extends AppCompatActivity {
      *
      * @param jsonResult the result of the API call as a string
      * */
-    public void finishProcessImage(final String jsonResult) {
-
-        if (jsonStringArray[0].equals("")) {
+    protected void finishProcessImage(final String jsonResult) {
+        Log.w(TAG, jsonexample);
+        if (!(jsonStringArray[0].equals("")) && !(jsonStringArray[1].equals(""))) {
+            String temp = jsonStringArray[0];
+            jsonStringArray[1] = temp;
             jsonStringArray[0] = jsonResult;
-        }
-        if (jsonStringArray[1].equals("") && jsonStringArray[0].equals("")) {
-            jsonStringArray[0] = jsonResult;
+            finalCompareImages(jsonStringArray[0], jsonStringArray[1]);
+            Log.w(TAG, "3");
         }
         if (jsonStringArray[1].equals("") && !(jsonStringArray[0].equals(""))) {
-            jsonStringArray[1] = jsonResult;
-            finalCompareImages(jsonStringArray[0], jsonStringArray[1]);
-        }
-        if (!(jsonStringArray[0].equals("")) && !(jsonStringArray[1].equals(""))) {
-            jsonStringArray[1] = jsonStringArray[0];
+            String temp = jsonStringArray[0];
+            jsonStringArray[1] = temp;
             jsonStringArray[0] = jsonResult;
             finalCompareImages(jsonStringArray[0], jsonStringArray[1]);
+            Log.w(TAG, "2");
+        }
+        if (jsonStringArray[0].equals("") && jsonStringArray[1].equals("")) {
+            jsonStringArray[0] = jsonResult;
+            Toast.makeText(getApplicationContext(), "first image",
+                    Toast.LENGTH_LONG).show();
+            Log.w(TAG, "empty");
+            Log.w(TAG, "1");
         }
     }
-    public void compareImages(final String json) {
+    public void returnAPI(final String json) {
+        jsonexample = "";
         try {
             JsonParser parser = new JsonParser();
             JsonObject object = parser.parse(json).getAsJsonObject();
@@ -243,30 +271,42 @@ public class AttendanceHax extends AppCompatActivity {
                     for (JsonElement lastOne: thirdArray) {
                         JsonObject no = lastOne.getAsJsonObject();
                         String rick = no.get("text").getAsString();
-                        jsonexample += rick;
+                        jsonexample = jsonexample + rick;
                     }
                 }
             }
         } catch (NullPointerException f) {
         }
+        if (jsonexample.equals("")) {
+            jsonexample = jsonexample + "^";
+        }
         finishProcessImage(jsonexample);
     }
 
-    public boolean finalCompareImages(final String jsonExample, final String json2Example) {
-        Toast.makeText(getApplicationContext(), "The images should be compared",
-                Toast.LENGTH_LONG).show();
+    public void finalCompareImages(final String jsonExample, final String json2Example) {
+        /**
+         * the jsons are already the same at this point. We need to figure out why, but I think
+         * it's because you have shallow references above.
+         */
         Log.w(TAG, "Have the images been compared?");
         if (jsonExample.equals(json2Example)) {
+            Toast.makeText(getApplicationContext(), "Same",
+                    Toast.LENGTH_LONG).show();
             Log.w(TAG, "The images are the same");
-            return true;
-            /**
-             * from here you'll want to call the vibration
-             */
         }
         else {
+            Toast.makeText(getApplicationContext(), "Different",
+                    Toast.LENGTH_LONG).show();
             Log.w(TAG, "The images are different");
-            return false;
+            Vibrator();
         }
+    }
+
+    public void Vibrator() {
+        Vibrator x = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        Toast.makeText(getApplicationContext(), "V",
+                Toast.LENGTH_LONG).show();
+        x.vibrate(500); // for 500 ms
     }
 
     void updateCurrentBitmap(final Bitmap setCurrentBitmap, final boolean resetInfo) {
